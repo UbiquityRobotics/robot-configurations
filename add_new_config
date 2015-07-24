@@ -1,0 +1,61 @@
+:
+#  Setup a new robot configuration with templates and files in current workspace
+#
+#  Simply copy the required config files from their locations within this workspace
+#  for from template files if the files don't normally exist in the source tree
+#
+
+configFlavor="config_noscan"    # sets prefered config file source preference
+botType=loki                    # specifies the general type of robot to configure
+baseFolder=`pwd`                # we assume we run this tool from robot configuration folder
+
+
+if [ $# != 1 ]
+then
+  echo "usage:  $0 <configFolder>"
+  echo " "
+  echo "$0 sets up a new robot configuration folder with the name given."
+  echo "Use configFolder name of  -d  to use current_hostname.local"
+  echo "Files in the current folder are used for repository files and"
+  echo "files that require generation are copied in from the templates folder"
+  echo "NOTE: We simply place files and it is up to the user to maintain"
+  echo "and ensure these files are correct in their content."
+  echo ""
+  exit
+fi
+
+echo " "
+
+configFolder=$1        #  config file folder OR the -d option
+
+if [ "$configFolder" = "-d" ]
+then
+  configFolder=`hostname`.local
+fi
+
+
+echo "Setup robot configuration files in folder '$configFolder'"
+
+mkdir $configFolder
+
+# First copy in files in the template folder that don't exist yet in repository
+
+cp $baseFolder/templates/raspi_1280x960.yaml $configFolder/camera.yaml
+echo "The camera.yaml config file is a default RasPi Camera cal file. Please re-cal your camera"
+
+cp $baseFolder/../fiducials/fiducial_detect/$configFlavor/dagny_nav.yaml      $configFolder/dagny_nav.yaml
+cp $baseFolder/../fiducials/fiducial_detect/$configFlavor/local_costmap.yaml  $configFolder
+cp $baseFolder/../fiducials/fiducial_detect/$configFlavor/common_costmap.yaml $configFolder
+cp $baseFolder/../fiducials/fiducial_detect/$configFlavor/global_costmap.yaml $configFolder
+cp $baseFolder/../fiducials/fiducial_detect/$configFlavor/local_planner.yaml  $configFolder
+echo "Navigation config files taken assuming the '$configFlavor' type of configuration"
+
+echo "ROS Arduino configration taken to be robot type of $botType"
+cp $baseFolder/../ros_arduino_bridge/ros_arduino_python/config/my_arduino_params.yaml.$botType $configFolder/my_arduino_params.yaml
+
+cp $baseFolder/../fiducials/fiducial_detect/map.pnm  $configFolder
+cp $baseFolder/../fiducials/fiducial_lib/$botType.urdf $configFolder
+cp $baseFolder/../fiducials/fiducial_detect/map.yaml  $configFolder
+
+echo ""
+echo "Files have been setup in $configFolder.  You must ensure they are correct for your config"
